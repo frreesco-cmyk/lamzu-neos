@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lamzu Neo VIP</title>
+    <!-- Подключаем стильный шрифт Plus Jakarta Sans с кириллицей -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-base: #07050d;
+            --bg-card: rgba(20, 14, 32, 0.75);
+            --bg-card-solid: #120b1e;
+            --neon-purple: #b042ff;
+            --neon-pink: #ff2a9d;
+            --text-main: #ffffff;
+            --text-secondary: #9d8ec4;
+            --border-neon: rgba(176, 66, 255, 0.3);
+            --border-neon-hover: rgba(176, 66, 255, 0.8);
+            --shadow-glow: 0 0 20px rgba(176, 66, 255, 0.25);
+            --shadow-glow-pink: 0 0 25px rgba(255, 42, 157, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            padding: 14px 16px 100px 16px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(176, 66, 255, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 90%, rgba(255, 42, 157, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .screen { display: none; opacity: 0; transition: opacity 0.25s ease-in-out; }
+        .screen.active { display: block; opacity: 1; }
+
+        /* Шапка */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 18px;
+            border-radius: 22px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border-neon);
+            box-shadow: var(--shadow-glow), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .header-logo {
+            display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 16px; letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, #d8b4fe, #ff79c6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 25px rgba(176, 66, 255, 0.5);
+        }
+
+        .badge-btn {
+            background: rgba(176, 66, 255, 0.12);
+            border: 1px solid var(--border-neon);
+            padding: 7px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f3e8ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.1);
+        }
+        .badge-btn:active { transform: scale(0.95); background: rgba(176, 66, 255, 0.25); border-color: var(--neon-purple); }
+
+        /* Поиск */
+        .search-section { margin-bottom: 16px; }
+        .search-container { display: flex; gap: 10px; }
+        
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-neon);
+            border-radius: 16px;
+            padding: 0 14px;
+            height: 48px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), var(--shadow-glow);
+            transition: all 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: var(--neon-purple);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.4), 0 0 15px rgba(176, 66, 255, 0.4);
+        }
+        .search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 500;
+            width: 100%;
+            outline: none;
+            margin-left: 8px;
+        }
+        .search-box input::placeholder { color: var(--text-secondary); }
+
+        /* Сетка карточек */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-radius: 22px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border-neon);
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4), var(--shadow-glow);
+        }
+        .card:hover { border-color: var(--border-neon-hover); box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 25px rgba(176,66,255,0.4); }
+        .card:active { transform: scale(0.96); }
+
+        .card-img-wrap { position: relative; width: 100%; height: 190px; background: #0e0918; }
+        .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+        .card-fav {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(10, 7, 18, 0.75); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center; color: white; cursor: pointer;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .card-id {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(10, 7, 18, 0.8); backdrop-filter: blur(10px);
+            border: 1px solid var(--border-neon);
+            padding: 4px 9px; border-radius: 8px; font-size: 11px; font-weight: 800; color: #f3e8ff;
+        }
+
+        .card-status-dot {
+            position: absolute; bottom: 10px; left: 10px;
+            background: rgba(10, 7, 18, 0.85); backdrop-filter: blur(8px);
+            padding: 3px 9px; border-radius: 6px; font-size: 10px; font-weight: 700; color: #4ade80;
+            display: flex; align-items: center; gap: 5px; border: 1px solid rgba(74, 222, 128, 0.35);
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+        }
+        .card-status-dot::before { content: ''; width: 6px; height: 6px; background: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; }
+
+        .card-info { padding: 12px 14px; }
+        .card-name-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .card-name { font-weight: 800; font-size: 15px; letter-spacing: 0.3px; }
+        .card-age { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+        .card-price { font-size: 14px; font-weight: 800; color: #e9d5ff; text-shadow: 0 0 12px rgba(176,66,255,0.5); }
+
+        /* Экран профиля */
+        .back-btn {
+            background: var(--bg-card); backdrop-filter: blur(16px);
+            border: 1px solid var(--border-neon); color: var(--text-main);
+            padding: 10px 16px; border-radius: 14px; cursor: pointer;
+            margin-bottom: 16px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .profile-main-photo {
+            width: 100%; height: 380px; border-radius: 24px; object-fit: cover;
+            margin-bottom: 14px; border: 1px solid var(--border-neon);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), var(--shadow-glow);
+        }
+
+        .profile-header-info {
+            background: var(--bg-card); backdrop-filter: blur(20px);
+            padding: 18px; border-radius: 22px; margin-bottom: 12px;
+            border: 1px solid var(--border-neon);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            box-shadow: var(--shadow-glow);
+        }
+        .profile-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: 0.3px; }
+        .profile-params { font-size: 13px; font-weight: 500; color: var(--text-secondary); line-height: 1.6; }
+
+        .profile-section {
+            background: var(--bg-card); backdrop-filter: blur(20px);
+            padding: 18px; border-radius: 22px; margin-bottom: 12px;
+            border: 1px solid var(--border-neon);
+            box-shadow: var(--shadow-glow);
+        }
+        .section-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 10px; font-weight: 800; letter-spacing: 1px; }
+        .profile-desc { font-size: 13.5px; font-weight: 400; line-height: 1.6; color: #f1f5f9; }
+
+        /* Галерея 18+ с размытием */
+        .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        
+        .gallery-item-wrap {
+            position: relative;
+            width: 100%;
+            height: 110px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-neon);
+            cursor: pointer;
+        }
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(12px);
+            -webkit-filter: blur(12px);
+            transform: scale(1.1);
+        }
+        .gallery-blur-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 7, 18, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #ffffff;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 15px rgba(255, 42, 157, 0.9);
+        }
+
+        .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+        .price-box {
+            background: rgba(176, 66, 255, 0.08); border: 1px solid var(--border-neon);
+            border-radius: 16px; padding: 12px 6px; text-align: center;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.05);
+        }
+        .price-box .time { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; font-weight: 700; }
+        .price-box .cost { font-size: 13.5px; font-weight: 800; color: #f3e8ff; text-shadow: 0 0 10px rgba(176,66,255,0.4); }
+
+        .btn-book {
+            background: linear-gradient(135deg, #b042ff, #ff2a9d);
+            color: #ffffff; border: none; width: 100%; padding: 16px; border-radius: 16px;
+            font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.8px;
+            box-shadow: 0 5px 25px rgba(176, 66, 255, 0.5), 0 0 20px rgba(255, 42, 157, 0.4);
+            transition: all 0.2s;
+        }
+        .btn-book:active { transform: scale(0.97); opacity: 0.9; box-shadow: 0 2px 10px rgba(176, 66, 255, 0.3); }
+
+        /* Отзывы */
+        .review-item { background: rgba(0,0,0,0.3); padding: 12px 14px; border-radius: 14px; margin-bottom: 8px; font-size: 13px; font-weight: 400; border: 1px solid rgba(255,255,255,0.04); }
+        .review-author { font-weight: 700; color: #d8b4fe; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .review-date { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+        
+        .add-review-box { display: flex; gap: 8px; margin-top: 12px; }
+        .add-review-box input {
+            flex: 1; background: rgba(0,0,0,0.45); border: 1px solid var(--border-neon);
+            border-radius: 12px; padding: 10px 14px; color: white; font-size: 13px; outline: none; font-weight: 500;
+        }
+        .add-review-box input:focus { border-color: var(--neon-purple); box-shadow: 0 0 12px rgba(176,66,255,0.3); }
+        .add-review-box button {
+            background: var(--neon-purple); color: white; border: none; padding: 0 16px;
+            border-radius: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(176,66,255,0.4);
+        }
+
+        /* Нижний Dock-бар */
+        .dock-bar {
+            position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+            background: rgba(14, 9, 24, 0.9); backdrop-filter: blur(25px);
+            border: 1px solid var(--border-neon); border-radius: 30px;
+            display: flex; padding: 8px 28px; gap: 36px; z-index: 100;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6), var(--shadow-glow);
+        }
+        .dock-item { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 20px; padding: 6px; transition: 0.2s; }
+        .dock-item.active { color: var(--neon-purple); text-shadow: 0 0 15px var(--neon-purple); transform: scale(1.1); }
+
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(4, 3, 8, 0.85); backdrop-filter: blur(12px);
+            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+        }
+        .modal-card {
+            background: var(--bg-card-solid); border: 1px solid var(--border-neon);
+            border-radius: 24px; width: 100%; max-width: 340px; padding: 24px; text-align: center; position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7), var(--shadow-glow);
+        }
+        .modal-close {
+            position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: 50%; width: 32px; height: 32px; color: white; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+        }
+        .modal-icon {
+            width: 54px; height: 54px; background: linear-gradient(135deg, rgba(176,66,255,0.3), rgba(255,42,157,0.3));
+            border: 1px solid var(--border-neon); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 16px auto; color: var(--neon-purple); font-size: 22px;
+            box-shadow: 0 0 20px rgba(176,66,255,0.4);
+        }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; letter-spacing: 0.3px; }
+        .modal-desc { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН 1: КАТАЛОГ -->
+    <div id="catalogScreen" class="screen active">
+        <div class="header">
+            <div class="header-logo"><span>🪼</span> LAMZU NEO</div>
+            <div class="badge-btn" onclick="openCityModal()">📍 <span id="currentCityText">МОСКВА</span></div>
+            <div class="badge-btn" onclick="openBalanceModal()">🟣 <span id="userBalance">0</span> ₽</div>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" placeholder="Поиск по имени или ID (#3538)..." id="searchInput" oninput="filterProfiles()">
+                </div>
+            </div>
+        </div>
+
+        <div class="grid" id="profilesGrid"></div>
+    </div>
+
+    <!-- ЭКРАН 2: ПОДРОБНАЯ АНКЕТА -->
+    <div id="profileScreen" class="screen">
+        <button class="back-btn" onclick="goHome()">← Назад в каталог</button>
+        
+        <img id="detPhoto" class="profile-main-photo" src="" alt="Модель">
+
+        <div class="profile-header-info">
+            <div>
+                <div id="detNameId" class="profile-title">Модель ✅</div>
+                <div id="detParams" class="profile-params">Возраст: -- | Рост: -- см | Вес: -- кг</div>
+            </div>
+            <button class="icon-btn" onclick="toggleCardFavFromProfile(this)">❤️</button>
+        </div>
+
+        <div class="profile-section">
+            <div class="section-label">О себе</div>
+            <div id="detDesc" class="profile-desc">Описание модели...</div>
+        </div>
+
+        <div class="profile-section">
+            <div class="section-label">Галерея фото 18+</div>
+            <div class="gallery-grid">
+                <div class="gallery-item-wrap" onclick="openGalleryLockedModal()">
+                    <img class="gallery-img" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=80" alt="18+">
+                    <div class="gallery-blur-overlay">18+</div>
+                </div>
+                <div class="gallery-item-wrap" onclick="openGalleryLockedModal()">
+                    <img class="gallery-img" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80" alt="18+">
+                    <div class="gallery-blur-overlay">18+</div>
+                </div>
+                <div class="gallery-item-wrap" onclick="openGalleryLockedModal()">
+                    <img class="gallery-img" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80" alt="18+">
+                    <div class="gallery-blur-overlay">18+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <div class="section-label">Стоимость услуг</div>
+            <div class="price-grid">
+                <div class="price-box"><div class="time">1 час</div><div class="cost" id="price1h">3 500 ₽</div></div>
+                <div class="price-box"><div class="time">3 часа</div><div class="cost">9 000 ₽</div></div>
+                <div class="price-box"><div class="time">Ночь</div><div class="cost">20 000 ₽</div></div>
+            </div>
+            <button class="btn-book" onclick="openBookModal()">Забронировать модель</button>
+        </div>
+
+        <div class="profile-section">
+            <div class="section-label">Отзывы клиентов</div>
+            <div id="reviewsList">
+                <div class="review-item">
+                    <div class="review-author">Алексей (#4812) <span class="review-date">Вчера</span></div>
+                    Всё прошло шикарно, девочка пунктуальная и соответствует фото на 100%!
+                </div>
+            </div>
+            <div class="add-review-box">
+                <input type="text" id="newReviewText" placeholder="Написать отзыв...">
+                <button onclick="addReview()">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- НИЖНИЙ DOCK-БАР -->
+    <div class="dock-bar">
+        <button class="dock-item active" onclick="goHome()" id="dockHome">🏠</button>
+        <button class="dock-item" onclick="openBalanceModal()" id="dockUser">👤</button>
+    </div>
+
+    <!-- МОДАЛКА ПОПОЛНЕНИЯ / ПРОФИЛЯ -->
+    <div class="modal-overlay" id="balanceModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeBalanceModal()">✕</button>
+            <div class="modal-icon">🟣</div>
+            <div class="modal-title">Ваш баланс</div>
+            <div class="modal-desc">Пополнить баланс можно любой удобной валютой через защищенный шлюз техподдержки.</div>
+            <button class="btn-book" onclick="redirectToSupport()">ПОПОЛНИТЬ БАЛАНС</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ВЫБОРА ГОРОДА -->
+    <div class="modal-overlay" id="cityModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeCityModal()">✕</button>
+            <div class="modal-icon">📍</div>
+            <div class="modal-title">Выберите город</div>
+            <div class="modal-desc" style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-book" style="font-size:13px; padding:12px;" onclick="setCity('МОСКВА')">Москва</button>
+                <button class="btn-book" style="font-size:13px; padding:12px; background:var(--bg-card); border:1px solid var(--border-neon); color:white;" onclick="setCity('САНКТ-ПЕТЕРБУРГ')">Санкт-Петербург</button>
+                <button class="btn-book" style="font-size:13px; padding:12px; background:var(--bg-card); border:1px solid var(--border-neon); color:white;" onclick="setCity('ДУБАЙ')">Дубай 💎</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА БРОНИРОВАНИЯ -->
+    <div class="modal-overlay" id="bookModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeBookModal()">✕</button>
+            <div class="modal-icon">✨</div>
+            <div class="modal-title">Забронировать модель</div>
+            <div class="modal-desc">Бронь анкеты будет закреплена за вами. Перейдите в техподдержку для согласования деталей времени.</div>
+            <button class="btn-book" onclick="redirectToSupport()">СВЯЗАТЬСЯ И ЗАКРЕПИТЬ</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗАКРЫТОГО КОНТЕНТА 18+ -->
+    <div class="modal-overlay" id="galleryLockedModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeGalleryLockedModal()">✕</button>
+            <div class="modal-icon">🔥</div>
+            <div class="modal-title">Контент 18+</div>
+            <div class="modal-desc">Эксклюзивная галерея доступна после подтверждения статуса и обращения в поддержку.</div>
+            <button class="btn-book" onclick="redirectToSupport()">РАЗБЛОКИРОВАТЬ</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function triggerHaptic() {
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+        }
+
+        let currentActiveCardId = null;
+
+        function openBalanceModal() { triggerHaptic(); document.getElementById('balanceModal').style.display = 'flex'; }
+        function closeBalanceModal() { document.getElementById('balanceModal').style.display = 'none'; }
+
+        function openCityModal() { triggerHaptic(); document.getElementById('cityModal').style.display = 'flex'; }
+        function closeCityModal() { document.getElementById('cityModal').style.display = 'none'; }
+        function setCity(city) {
+            triggerHaptic();
+            document.getElementById('currentCityText').textContent = city;
+            closeCityModal();
+        }
+
+        function openBookModal() { triggerHaptic(); document.getElementById('bookModal').style.display = 'flex'; }
+        function closeBookModal() { document.getElementById('bookModal').style.display = 'none'; }
+
+        function openGalleryLockedModal() { triggerHaptic(); document.getElementById('galleryLockedModal').style.display = 'flex'; }
+        function closeGalleryLockedModal() { document.getElementById('galleryLockedModal').style.display = 'none'; }
+
+        function redirectToSupport() {
+            triggerHaptic();
+            window.location.href = 'https://t.me/your_support_username';
+        }
+
+        function goHome() {
+            triggerHaptic();
+            document.getElementById('profileScreen').classList.remove('active');
+            document.getElementById('catalogScreen').classList.add('active');
+            document.getElementById('dockHome').classList.add('active');
+            document.getElementById('dockUser').classList.remove('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function openProfile(name, id, age, height, weight, bust, desc, price) {
+            triggerHaptic();
+            currentActiveCardId = id;
+            document.getElementById('detNameId').textContent = `${name}, #${id} ✅`;
+            document.getElementById('detParams').textContent = `Возраст: ${age} лет | Рост: ${height} см | Вес: ${weight} кг | Бюст: ${bust}`;
+            document.getElementById('detDesc').textContent = desc;
+            document.getElementById('price1h').textContent = price;
+            
+            const cardEl = document.querySelector(`.card[data-id="${id}"] img`);
+            if (cardEl) {
+                document.getElementById('detPhoto').src = cardEl.src;
+            }
+
+            document.getElementById('catalogScreen').classList.remove('active');
+            document.getElementById('profileScreen').classList.add('active');
+            document.getElementById('dockHome').classList.remove('active');
+            document.getElementById('dockUser').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterProfiles() {
+            let query = document.getElementById('searchInput').value.trim().toLowerCase().replace('#', '');
+            let cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                let id = card.getAttribute('data-id');
+                let name = card.getAttribute('data-name').toLowerCase();
+
+                let matchesQuery = id.includes(query) || name.includes(query);
+
+                if (matchesQuery) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function toggleCardFavFromProfile(btn) {
+            triggerHaptic();
+            btn.textContent = btn.textContent === '🤍' ? '❤️' : '🤍';
+            btn.style.color = btn.textContent === '❤️' ? '#ff2a9d' : 'white';
+            if (currentActiveCardId) {
+                const cardFavBtn = document.querySelector(`.card[data-id="${currentActiveCardId}"] .card-fav`);
+                if (cardFavBtn) {
+                    cardFavBtn.textContent = btn.textContent;
+                    cardFavBtn.style.color = btn.style.color;
+                }
+            }
+        }
+
+        function addReview() {
+            const input = document.getElementById('newReviewText');
+            if (!input.value.trim()) return;
+            triggerHaptic();
+            const list = document.getElementById('reviewsList');
+            const newItem = document.createElement('div');
+            newItem.className = 'review-item';
+            newItem.innerHTML = `<div class="review-author">Вы <span class="review-date">Только что</span></div>${input.value}`;
+            list.prepend(newItem);
+            input.value = '';
+        }
+    </script>
+</body>
+</html>
